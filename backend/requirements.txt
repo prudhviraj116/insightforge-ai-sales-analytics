@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+numpy
+sqlalchemy
+pymysql
+python-multipart
+openai
+python-dotenv
