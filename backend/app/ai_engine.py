@@ -4,10 +4,10 @@ import os
 import json
 
 
-api_key = os.getenv("GOOGLE_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY ")
 
 if not api_key:
-    raise RuntimeError("GOOGLE_API_KEY not set")
+    raise RuntimeError("GEMINI_API_KEY  not set")
 # Initialize Gemini client
 client = genai.Client(api_key=GEMINI_API_KEY)
 
