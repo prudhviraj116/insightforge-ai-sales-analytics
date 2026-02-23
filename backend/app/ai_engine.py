@@ -1,15 +1,13 @@
-from google import genai
-from .config import GEMINI_API_KEY
 import os
+from google import genai
 import json
 
-
-api_key = os.getenv("GEMINI_API_KEY ")
+api_key = os.getenv("GEMINI_API_KEY")
 
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY not set")
-# Initialize Gemini client
-client = genai.Client(api_key=GEMINI_API_KEY)
+
+client = genai.Client(api_key=api_key)
 
 def generate_insight(kpis):
     """
