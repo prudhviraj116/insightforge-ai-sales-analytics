@@ -1,15 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import logging
+
 from .routes import sales
 from .database import Base, engine
-from fastapi.middleware.cors import CORSMiddleware
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="InsightForge AI – Sales Analytics Platform")
 
+# Create tables on startup
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+
+# Include routers
 app.include_router(sales.router, prefix="/sales", tags=["Sales"])
 
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,17 +25,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-import logging
-
-app = FastAPI()
-
+# Global error handler
 logger = logging.getLogger(__name__)
 
-# 👇 ADD IT HERE (after app = FastAPI())
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}")
@@ -37,7 +36,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"error": "Internal Server Error"}
     )
 
-# Your routes below
 @app.get("/health")
 def health():
     return {"status": "ok"}
