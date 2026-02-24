@@ -1,18 +1,46 @@
 import os
-from google import genai
 import json
+
+try:
+    from google import genai
+except ImportError:
+    genai = None
 
 api_key = os.getenv("GEMINI_API_KEY")
 
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY not set")
+client = None
 
-client = genai.Client(api_key=api_key)
+if api_key and genai:
+    try:
+        client = genai.Client(api_key=api_key)
+    except Exception as e:
+        print(f"Gemini initialization failed: {e}")
+else:
+    print("Gemini API not configured. AI features disabled.")
 
+
+# -----------------------------
+# Safe AI Wrapper
+# -----------------------------
+def _safe_generate(model_name, prompt):
+    if not client:
+        return "AI service not available in this deployment."
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        print(f"Gemini runtime error: {e}")
+        return "AI service error."
+
+
+# -----------------------------
+# Generate Insights
+# -----------------------------
 def generate_insight(kpis):
-    """
-    Generates business insights from sales KPIs using Gemini AI.
-    """
     prompt = f"""
     You are a senior business analyst.
 
@@ -26,21 +54,13 @@ def generate_insight(kpis):
     {kpis}
     """
 
-    # Call Gemini AI
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",  # <- stable model supporting generateContent
-        contents=prompt
-    )
-
-    return response.text
-
+    return _safe_generate("gemini-2.5-flash", prompt)
 
 
 # -----------------------------
 # Detect Intent
 # -----------------------------
 def detect_intent(question: str):
-
     prompt = f"""
     Classify the user input into one of these categories:
 
@@ -53,19 +73,13 @@ def detect_intent(question: str):
     User input: {question}
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt
-    )
-
-    return response.text.strip().lower()
+    return _safe_generate("gemini-2.0-flash", prompt).strip().lower()
 
 
 # -----------------------------
 # Extract Structured Filters
 # -----------------------------
 def extract_filters(question: str):
-
     prompt = f"""
     Convert the user question into structured JSON filters.
 
@@ -81,22 +95,18 @@ def extract_filters(question: str):
     Question: {question}
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt
-    )
+    result = _safe_generate("gemini-2.0-flash", prompt)
 
     try:
-        return json.loads(response.text)
+        return json.loads(result)
     except:
         return {}
 
 
 # -----------------------------
-# Explain Computed Results
+# Explain Results
 # -----------------------------
 def explain_results(question: str, result_data):
-
     prompt = f"""
     You are a senior business data analyst.
 
@@ -110,9 +120,4 @@ def explain_results(question: str, result_data):
     Do NOT invent numbers.
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt
-    )
-
-    return response.text
+    return _safe_generate("gemini-2.0-flash", prompt)
