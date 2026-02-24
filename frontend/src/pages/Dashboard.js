@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { fetchDashboardData,fetchGrowthAnalysis,fetchRootCause,fetchRecommendations,uploadSalesCSV } from "../services/api";
+import { fetchDashboardData } from "../services/api";
 import ChartsSection from "../components/ChartsSection";
 import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";

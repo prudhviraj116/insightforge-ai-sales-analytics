@@ -17,7 +17,7 @@ function RegionChart({ data }) {
 
 export default RegionChart;*/
 import React from "react";
-import { PieChart, Pie, Tooltip, Cell } from "recharts";
+import { PieChart, Pie, Tooltip } from "recharts";
 
 function RegionChart({ data }) {
 
