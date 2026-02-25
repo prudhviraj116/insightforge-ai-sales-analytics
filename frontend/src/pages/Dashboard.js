@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { fetchDashboardData } from "../services/api";
+import {uploadSalesCSV, fetchDashboardData } from "../services/api";
 import ChartsSection from "../components/ChartsSection";
 import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";
@@ -13,19 +13,17 @@ function Dashboard() {
   const [insightOpen, setInsightOpen] = useState(false);
 
   const handleUpload = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
+    try {
+      // Upload CSV to backend
+      await uploadSalesCSV(file);
 
-  const API_URL = import.meta.env.REACT_APP_API_URL;
-
-  await fetch(`${API_URL}/sales/upload`, {
-    method: "POST",
-    body: formData
-  });
-
-  const dashboardData = await fetchDashboardData();
-  setData(dashboardData);
-};
+      // Fetch dashboard data after upload
+      const dashboardData = await fetchDashboardData();
+      setData(dashboardData);
+    } catch (error) {
+      console.error("Upload or fetch failed:", error);
+    }
+  };
 
   return (
     <div className="p-10">
