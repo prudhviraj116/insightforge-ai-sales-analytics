@@ -1,67 +1,12 @@
+// src/services/api.js
 
-/*
-export const fetchDashboardData = async () => {
-  const res = await axios.get(
-    "http://127.0.0.1:8000/sales/dashboard"
-  );
-  return res.data;
-};*/
-/*
+// Base URL from Vercel environment variable
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-export const fetchDashboardData = async () => {
-  try {
-    const response = await fetch("http://localhost:8000/sales/dashboard");
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch dashboard data");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(error);
-    return {
-      kpis: {},
-      revenue_trend: [],
-      product_analysis: [],
-      region_analysis: []
-    };
-  }
-};*/
-
-/*export const fetchDashboardData = async () => {
-  const res = await fetch("http://localhost:8000/sales/dashboard");
-  return await res.json();
-};*/
-
-
-// ---------------------
-// AI Chat Call
-// ---------------------
-/*
-export const askAI = async (question) => {
-  const response = await fetch("http://localhost:8000/sales/ai-response", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ question })
-  });
-
-  if (!response.ok) {
-    throw new Error("AI request failed");
-  }
-
-  return response.json();
-};*/
-
-
-
-
-
-
-// src/api/api.js
-
-const BASE_URL = "http://localhost:8000";
+// Safety check – fail fast if not configured
+if (!BASE_URL) {
+  throw new Error("VITE_API_URL is not defined in environment variables");
+}
 
 // ---------------- Dashboard ----------------
 export const fetchDashboardData = async () => {
@@ -74,7 +19,7 @@ export const fetchDashboardData = async () => {
 
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error("Dashboard fetch error:", error);
     return {
       kpis: {},
       revenue_trend: [],
@@ -87,21 +32,33 @@ export const fetchDashboardData = async () => {
 // ---------------- Growth Analysis ----------------
 export const fetchGrowthAnalysis = async () => {
   const response = await fetch(`${BASE_URL}/sales/growth-analysis`);
-  if (!response.ok) throw new Error("Failed to fetch growth analysis");
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch growth analysis");
+  }
+
   return await response.json();
 };
 
 // ---------------- Root Cause ----------------
 export const fetchRootCause = async () => {
   const response = await fetch(`${BASE_URL}/sales/root-cause-analysis`);
-  if (!response.ok) throw new Error("Failed to fetch root cause");
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch root cause analysis");
+  }
+
   return await response.json();
 };
 
 // ---------------- Action Recommendations ----------------
 export const fetchRecommendations = async () => {
   const response = await fetch(`${BASE_URL}/sales/action-recommendations`);
-  if (!response.ok) throw new Error("Failed to fetch recommendations");
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch recommendations");
+  }
+
   return await response.json();
 };
 
@@ -115,7 +72,9 @@ export const uploadSalesCSV = async (file) => {
     body: formData
   });
 
-  if (!response.ok) throw new Error("Upload failed");
+  if (!response.ok) {
+    throw new Error("CSV upload failed");
+  }
 
   return await response.json();
 };
@@ -130,11 +89,9 @@ export const sendAIMessage = async (message) => {
     body: JSON.stringify({ message })
   });
 
-  if (!response.ok) throw new Error("AI response failed");
+  if (!response.ok) {
+    throw new Error("AI response failed");
+  }
 
   return await response.json();
 };
-
-
-
-
