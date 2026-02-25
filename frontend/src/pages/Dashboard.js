@@ -5,10 +5,20 @@ import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";
 import AIChatModal from "../components/ai/AIChatModal";
 import InsightPanel from "../components/ai/InsightPanel";
+import GrowthCard from "../components/ai/cards/GrowthCard";
+import RiskCard from "../components/ai/cards/RiskCard";
+import ProductStrategyCard from "../components/ai/cards/ProductStrategyCard";
+import RegionStrategyCard from "../components/ai/cards/RegionStrategyCard";
+import ActionPlanCard from "../components/ai/cards/ActionPlanCard";
+
 
 function Dashboard() {
 
   const [data, setData] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [insightOpen, setInsightOpen] = useState(false);
 
