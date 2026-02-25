@@ -17,9 +17,14 @@ def startup():
 app.include_router(sales.router, prefix="/sales", tags=["Sales"])
 
 # CORS
+origins = [
+    "http://localhost:3000",
+    "https://insightforge-ai-sales-analytics-42b2nlmns.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
