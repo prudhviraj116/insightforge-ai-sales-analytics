@@ -1,11 +1,12 @@
 // src/services/api.js
 
 // Base URL from Vercel environment variable
-const BASE_URL = import.meta.env.VITE_API_URL;
+// src/services/api.js
 
-// Safety check – fail fast if not configured
+const BASE_URL = process.env.REACT_APP_API_URL;
+
 if (!BASE_URL) {
-  throw new Error("VITE_API_URL is not defined in environment variables");
+  console.error("REACT_APP_API_URL is not defined");
 }
 
 // ---------------- Dashboard ----------------
