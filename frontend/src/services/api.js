@@ -2,6 +2,23 @@
 
 // Base URL from Vercel environment variable
 // src/services/api.js
+const fetchWithRetry = async (url, options = {}, retries = 2, delay = 2000) => {
+  try {
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(res => setTimeout(res, delay));
+      return fetchWithRetry(url, options, retries - 1, delay);
+    }
+    throw error;
+  }
+};
 
 const BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -12,7 +29,9 @@ if (!BASE_URL) {
 // ---------------- Dashboard ----------------
 export const fetchDashboardData = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/sales/dashboard`);
+    const response = await fetchWithRetry(
+  `${BASE_URL}/sales/dashboard`
+);
 
     if (!response.ok) {
       throw new Error("Failed to fetch dashboard data");
@@ -68,10 +87,13 @@ export const uploadSalesCSV = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${BASE_URL}/sales/upload-sales`, {
+const response = await fetchWithRetry(
+  `${BASE_URL}/sales/upload-sales`,
+  {
     method: "POST",
     body: formData
-  });
+  }
+);
 
   if (!response.ok) {
     throw new Error("CSV upload failed");

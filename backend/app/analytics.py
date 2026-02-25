@@ -80,3 +80,24 @@ def calculate_kpis(df: pd.DataFrame):
         "total_orders": int(len(df)),
         "top_product": df.groupby("product")["revenue"].sum().idxmax()
     }
+
+
+def compute_business_summary(df):
+    total_revenue = df["revenue"].sum()
+
+    revenue_by_month = df.groupby("date")["revenue"].sum().pct_change().mean()
+
+    top_product = df.groupby("product")["revenue"].sum().idxmax()
+    worst_product = df.groupby("product")["revenue"].sum().idxmin()
+
+    top_region = df.groupby("region")["revenue"].sum().idxmax()
+    worst_region = df.groupby("region")["revenue"].sum().idxmin()
+
+    return {
+        "total_revenue": float(total_revenue),
+        "avg_growth_rate": float(revenue_by_month),
+        "top_product": top_product,
+        "worst_product": worst_product,
+        "top_region": top_region,
+        "worst_region": worst_region
+    }
