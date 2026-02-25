@@ -13,17 +13,19 @@ function Dashboard() {
   const [insightOpen, setInsightOpen] = useState(false);
 
   const handleUpload = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    await fetch("http://localhost:8000/sales/upload", {
-      method: "POST",
-      body: formData
-    });
+  const API_URL = import.meta.env.VITE_API_URL;
 
-    const dashboardData = await fetchDashboardData();
-    setData(dashboardData);
-  };
+  await fetch(`${API_URL}/sales/upload`, {
+    method: "POST",
+    body: formData
+  });
+
+  const dashboardData = await fetchDashboardData();
+  setData(dashboardData);
+};
 
   return (
     <div className="p-10">
