@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {uploadSalesCSV, fetchDashboardData } from "../services/api";
+import {uploadSalesCSV, fetchDashboardData, sendAIMessage } from "../services/api";
 import ChartsSection from "../components/ChartsSection";
 import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";
@@ -32,8 +32,9 @@ function Dashboard() {
 
       const dashboardData = await fetchDashboardData();
       setData(dashboardData);
-            // Call AI endpoint for insights
-      const aiResponse = await askAI("Analyze this sales data");
+            
+      // Call AI endpoint for insights
+      const aiResponse = await sendAIMessage("Analyze this sales data");
       setInsights(aiResponse.insights);
 
       setSuccess(true);
