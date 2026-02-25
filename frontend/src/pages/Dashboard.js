@@ -32,6 +32,9 @@ function Dashboard() {
 
       const dashboardData = await fetchDashboardData();
       setData(dashboardData);
+            // Call AI endpoint for insights
+      const aiResponse = await askAI("Analyze this sales data");
+      setInsights(aiResponse.insights);
 
       setSuccess(true);
 
