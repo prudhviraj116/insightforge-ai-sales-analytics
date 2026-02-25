@@ -19,7 +19,7 @@ app.include_router(sales.router, prefix="/sales", tags=["Sales"])
 # CORS
 origins = [
     "http://localhost:3000",
-    "https://insightforge-ai-sales-analytics.vercel.app/"
+    "https://insightforge-ai-sales-analytics.vercel.app"
 ]
 
 app.add_middleware(
@@ -43,4 +43,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 def health():
+
     return {"status": "ok"}
