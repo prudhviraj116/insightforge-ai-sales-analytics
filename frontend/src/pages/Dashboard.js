@@ -16,7 +16,7 @@ function Dashboard() {
   const formData = new FormData();
   formData.append("file", file);
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.REACT_APP_API_URL;
 
   await fetch(`${API_URL}/sales/upload`, {
     method: "POST",
