@@ -5,12 +5,6 @@ import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";
 import AIChatModal from "../components/ai/AIChatModal";
 import InsightPanel from "../components/ai/InsightPanel";
-import GrowthCard from "../components/ai/cards/GrowthCard";
-import RiskCard from "../components/ai/cards/RiskCard";
-import ProductStrategyCard from "../components/ai/cards/ProductStrategyCard";
-import RegionStrategyCard from "../components/ai/cards/RegionStrategyCard";
-import ActionPlanCard from "../components/ai/cards/ActionPlanCard";
-
 
 function Dashboard() {
 
@@ -37,6 +31,9 @@ function Dashboard() {
       
       // 3️⃣ Call AI for insights// 
       const aiResponse = await sendAIMessage("Analyze this sales data");
+
+      console.log("FULL AI RESPONSE:", aiResponse);
+      console.log("AI INSIGHTS ONLY:", aiResponse?.insights);
 
       if (aiResponse?.insights) {
         setInsights(aiResponse.insights);
@@ -112,30 +109,19 @@ This may take a few seconds on first load.
       {data && <ChartsSection data={data} openInsight={() => setInsightOpen(true)} />}
 
       {/* AI Insight Cards */}
-      {insights && typeof insights === "object" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          {insights.growth_analysis && (
-            <GrowthCard data={insights.growth_analysis} />
-          )}
-
-          {insights.risk_analysis && (
-            <RiskCard data={insights.risk_analysis} />
-          )}
-
-          {insights.product_strategy && (
-            <ProductStrategyCard data={insights.product_strategy} />
-          )}
-
-          {insights.regional_strategy && (
-            <RegionStrategyCard data={insights.regional_strategy} />
-          )}
-
-          {Array.isArray(insights.executive_actions) && (
-            <ActionPlanCard actions={insights.executive_actions} />
-          )}
+      {insights && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>Raw AI Insights:</h3>
+          <pre style={{
+            background: "#f4f4f4",
+            padding: "10px",
+            borderRadius: "5px",
+            overflowX: "auto"
+          }}>
+            {JSON.stringify(insights, null, 2)}
+          </pre>
         </div>
       )}
-
 
       <FloatingAIButton onClick={() => setAiOpen(true)} />
 
