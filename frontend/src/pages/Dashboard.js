@@ -34,38 +34,42 @@ function Dashboard() {
       setData(dashboardData);
             
       // Call AI endpoint for insights
+      
+      // 3️⃣ Call AI for insights// 
       const aiResponse = await sendAIMessage("Analyze this sales data");
-      setInsights(aiResponse.insights);
+
+      if (aiResponse?.insights) {
+        setInsights(aiResponse.insights);
+      }
+
+      if (aiResponse?.ai_status !== "success") {
+        console.warn("AI fallback used:", aiResponse?.ai_status);
+      }
 
       setSuccess(true);
 
     } catch (err) {
       console.error(err);
-
-      const message =
-        err?.message || "Upload failed. Please check file format.";
-
-      setError(message);
-
+      setError(err?.message || "Upload failed. Please check file format.");
     } finally {
       setLoading(false);
     }
   };
+
+  // Cold start message if server is slow
   useEffect(() => {
-  let timer;
+    let timer;
 
-  if (loading) {
-    timer = setTimeout(() => {
-      setError((prev) =>
-        prev || "Server is waking up. Please wait..."
-      );
-    }, 5000);
-  }
+    if (loading) {
+      timer = setTimeout(() => {
+        setError(prev => prev || "Server is waking up. Please wait...");
+      }, 5000);
+    }
 
-  return () => {
-    if (timer) clearTimeout(timer);
-  };
-}, [loading]);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [loading]);
 
    return (
     <div className="p-10">
