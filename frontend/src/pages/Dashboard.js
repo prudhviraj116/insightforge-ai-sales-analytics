@@ -5,6 +5,11 @@ import UploadButton from "../components/ui/UploadButton";
 import FloatingAIButton from "../components/ai/FloatingAIButton";
 import AIChatModal from "../components/ai/AIChatModal";
 import InsightPanel from "../components/ai/InsightPanel";
+import GrowthCard from "../components/ai/cards/GrowthCard";
+import RiskCard from "../components/ai/cards/RiskCard";
+import ProductStrategyCard from "../components/ai/cards/ProductStrategyCard";
+import RegionStrategyCard from "../components/ai/cards/RegionStrategyCard";
+import ActionPlanCard from "../components/ai/cards/ActionPlanCard";
 
 function Dashboard() {
 
@@ -33,10 +38,13 @@ function Dashboard() {
       const aiResponse = await sendAIMessage("Analyze this sales data");
 
       console.log("FULL AI RESPONSE:", aiResponse);
-      console.log("AI INSIGHTS ONLY:", aiResponse?.insights);
 
-      if (aiResponse?.insights) {
+      // Make sure insights exists and is object
+      if (aiResponse && typeof aiResponse.insights === "object") {
         setInsights(aiResponse.insights);
+      } else {
+        console.warn("Unexpected AI response format");
+        setInsights(null);
       }
 
       if (aiResponse?.ai_status !== "success") {
@@ -110,19 +118,14 @@ This may take a few seconds on first load.
 
       {/* AI Insight Cards */}
       {insights && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Raw AI Insights:</h3>
-          <pre style={{
-            background: "#f4f4f4",
-            padding: "10px",
-            borderRadius: "5px",
-            overflowX: "auto"
-          }}>
-            {JSON.stringify(insights, null, 2)}
-          </pre>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <GrowthCard data={insights.growth_analysis} />
+          <RiskCard data={insights.risk_analysis} />
+          <ProductStrategyCard data={insights.product_strategy} />
+          <RegionStrategyCard data={insights.regional_strategy} />
+          <ActionPlanCard actions={insights.executive_actions} />
         </div>
       )}
-
       <FloatingAIButton onClick={() => setAiOpen(true)} />
 
       <AIChatModal
