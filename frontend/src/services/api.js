@@ -104,17 +104,16 @@ const response = await fetchWithRetry(
 
 // ---------------- AI Chat ----------------
 export const sendAIMessage = async (message) => {
-  const response = await fetch(`${BASE_URL}/sales/ai-response`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ message })
-  });
-
-  if (!response.ok) {
-    throw new Error("AI response failed");
-  }
+  const response = await fetchWithRetry(
+    `${BASE_URL}/sales/ai-response`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ question: message }) // ✅ FIXED
+    }
+  );
 
   return await response.json();
 };
