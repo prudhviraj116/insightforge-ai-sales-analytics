@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import insert
 from pydantic import BaseModel
 import pandas as pd
-import os
 from io import BytesIO
-
+import os
+import json
+import re
+from google import genai
 from ..database import get_db
 from ..models import Sales
 from ..analytics import clean_data, calculate_dashboard, calculate_kpis, compute_business_summary
@@ -285,32 +287,29 @@ def dashboard(db: Session = Depends(get_db)):
 # =========================
 # SMART AI RESPONSE
 # =========================
+
 @router.post("/ai-response")
 async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-    # 🟢 Fallback Mode
-    if not GEMINI_API_KEY:
-        return {
-            "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
-            "risk_analysis": "One or more products show declining performance and require review.",
-            "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
-            "regional_strategy": "Strengthen distribution in high-performing regions.",
-            "executive_actions": [
-                "Reallocate marketing budget toward growth drivers",
-                "Run product-level margin diagnostics",
-                "Investigate underperforming regions"
-            ]
-        }
     question = request.question.strip()
     intent = detect_intent(question)
 
+    # -------------------------------------------------
+    # 1️⃣ Greeting / Unrelated
+    # -------------------------------------------------
     if intent == "greeting":
-        return {"answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."}
+        return {
+            "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
+        }
 
     if intent == "unrelated":
-        return {"answer": "I specialize in analyzing your sales data."}
+        return {
+            "answer": "I specialize in analyzing your sales data."
+        }
 
+    # -------------------------------------------------
+    # 2️⃣ Fetch Sales Data
+    # -------------------------------------------------
     records = db.query(Sales).all()
     if not records:
         raise HTTPException(status_code=404, detail="No sales data available")
@@ -325,52 +324,128 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         }
         for r in records
     ])
+
     df["order_date"] = pd.to_datetime(df["order_date"], errors="coerce")
     df = df.dropna(subset=["order_date"])
 
+    # -------------------------------------------------
+    # 3️⃣ Apply Filters
+    # -------------------------------------------------
     filters = extract_filters(question)
     result_data = apply_filters(df, filters)
     final_answer = explain_results(question, result_data)
 
-     # Compute structured business signals
+    # -------------------------------------------------
+    # 4️⃣ Compute KPIs
+    # -------------------------------------------------
     business_summary = compute_business_summary(df)
 
-    # Build AI prompt with structured data
+    # -------------------------------------------------
+    # 5️⃣ Check API Key (Fallback Mode)
+    # -------------------------------------------------
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+    if not GEMINI_API_KEY:
+        return {
+            "question": question,
+            "filters_used": filters,
+            "business_summary": business_summary,
+            "insights": {
+                "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
+                "risk_analysis": "One or more products show declining performance and require review.",
+                "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
+                "regional_strategy": "Strengthen distribution in high-performing regions.",
+                "executive_actions": [
+                    "Reallocate marketing budget toward growth drivers",
+                    "Run product-level margin diagnostics",
+                    "Investigate underperforming regions"
+                ]
+            },
+            "answer": final_answer,
+            "ai_status": "fallback_no_api_key"
+        }
+
+    # -------------------------------------------------
+    # 6️⃣ Build AI Prompt
+    # -------------------------------------------------
     prompt = f"""
-You are a senior business strategy analyst.
+    You are a senior business strategy analyst.
 
-Based on the following computed KPIs:
+    Based on the following computed KPIs:
 
-{business_summary}
+    {business_summary}
 
-Provide:
+    Provide:
 
-1. Growth diagnosis
-2. Revenue risk areas
-3. Product-level strategy
-4. Region-level recommendation
-5. 3 concrete executive actions
+    1. Growth diagnosis
+    2. Revenue risk areas
+    3. Product-level strategy
+    4. Region-level recommendation
+    5. 3 concrete executive actions
 
-Be concise, strategic, and data-driven.
-"""
-    # Call AI engine (existing function)
-    ai_result = generate_insight(prompt)
+    Respond strictly in JSON format:
+    {{
+        "growth_analysis": "...",
+        "risk_analysis": "...",
+        "product_strategy": "...",
+        "regional_strategy": "...",
+        "executive_actions": ["...", "...", "..."]
+    }}
+    """
 
-    # Optionally, structure the AI response
-    structured_response = {
-        "growth_analysis": ai_result.get("growth_analysis"),
-        "risk_analysis": ai_result.get("risk_analysis"),
-        "product_strategy": ai_result.get("product_strategy"),
-        "regional_strategy": ai_result.get("regional_strategy"),
-        "executive_actions": ai_result.get("executive_actions", [])
-    }
+    # -------------------------------------------------
+    # 7️⃣ Call Gemini 2.5 Flash
+    # -------------------------------------------------
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
 
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        ai_text = response.text
+
+        # 🔐 Extract JSON safely
+        json_match = re.search(r"\{.*\}", ai_text, re.DOTALL)
+        if not json_match:
+            raise ValueError("Invalid JSON returned by AI")
+
+        ai_result = json.loads(json_match.group())
+
+        structured_response = {
+            "growth_analysis": ai_result.get("growth_analysis"),
+            "risk_analysis": ai_result.get("risk_analysis"),
+            "product_strategy": ai_result.get("product_strategy"),
+            "regional_strategy": ai_result.get("regional_strategy"),
+            "executive_actions": ai_result.get("executive_actions", [])
+        }
+
+        ai_status = "success"
+
+    except Exception as e:
+        structured_response = {
+            "growth_analysis": "AI analysis temporarily unavailable.",
+            "risk_analysis": "Unable to evaluate risks at this time.",
+            "product_strategy": "Review top and bottom SKUs manually.",
+            "regional_strategy": "Review regional sales performance.",
+            "executive_actions": [
+                "Check AI configuration",
+                "Validate API key",
+                "Retry request"
+            ]
+        }
+
+        ai_status = "failed"
+
+    # -------------------------------------------------
+    # 8️⃣ Final Response
+    # -------------------------------------------------
     return {
         "question": question,
         "filters_used": filters,
         "business_summary": business_summary,
         "insights": structured_response,
-        "answer": final_answer
-
+        "answer": final_answer,
+        "ai_status": ai_status
     }
-
