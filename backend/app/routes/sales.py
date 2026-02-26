@@ -496,6 +496,4 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         "insights": structured_response,
         "answer": final_answer,
         "ai_status": ai_status
-        "answer": final_answer,
-        "ai_status": ai_status
     }
