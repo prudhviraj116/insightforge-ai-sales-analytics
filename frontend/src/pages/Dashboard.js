@@ -126,6 +126,7 @@ This may take a few seconds on first load.
           <ActionPlanCard actions={insights.executive_actions} />
         </div>
       )}
+
       <FloatingAIButton onClick={() => setAiOpen(true)} />
 
       <AIChatModal
