@@ -5,12 +5,9 @@ from pydantic import BaseModel
 import pandas as pd
 from io import BytesIO
 import os
-<<<<<<< HEAD
 import json
 import re
 from google import genai
-=======
->>>>>>> 5143ce6 (Fixed ai)
 from ..database import get_db
 from ..models import Sales
 from ..analytics import clean_data, calculate_dashboard, calculate_kpis, compute_business_summary
@@ -291,34 +288,23 @@ def dashboard(db: Session = Depends(get_db)):
 # SMART AI RESPONSE
 # =========================
 
+
 @router.post("/ai-response")
 async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
-<<<<<<< HEAD
 
-=======
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-    # 🟢 Fallback Mode
-    if not GEMINI_API_KEY:
-        return {
-            "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
-            "risk_analysis": "One or more products show declining performance and require review.",
-            "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
-            "regional_strategy": "Strengthen distribution in high-performing regions.",
-            "executive_actions": [
-                "Reallocate marketing budget toward growth drivers",
-                "Run product-level margin diagnostics",
-                "Investigate underperforming regions"
-            ]
-        }
->>>>>>> 5143ce6 (Fixed ai)
     question = request.question.strip()
     intent = detect_intent(question)
 
     # -------------------------------------------------
     # 1️⃣ Greeting / Unrelated
     # -------------------------------------------------
+    # -------------------------------------------------
+    # 1️⃣ Greeting / Unrelated
+    # -------------------------------------------------
     if intent == "greeting":
+        return {
+            "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
+        }
         return {
             "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
         }
@@ -327,7 +313,13 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         return {
             "answer": "I specialize in analyzing your sales data."
         }
+        return {
+            "answer": "I specialize in analyzing your sales data."
+        }
 
+    # -------------------------------------------------
+    # 2️⃣ Fetch Sales Data
+    # -------------------------------------------------
     # -------------------------------------------------
     # 2️⃣ Fetch Sales Data
     # -------------------------------------------------
@@ -346,9 +338,13 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         for r in records
     ])
 
+
     df["order_date"] = pd.to_datetime(df["order_date"], errors="coerce")
     df = df.dropna(subset=["order_date"])
 
+    # -------------------------------------------------
+    # 3️⃣ Apply Filters
+    # -------------------------------------------------
     # -------------------------------------------------
     # 3️⃣ Apply Filters
     # -------------------------------------------------
@@ -356,6 +352,9 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     result_data = apply_filters(df, filters)
     final_answer = explain_results(question, result_data)
 
+    # -------------------------------------------------
+    # 4️⃣ Compute KPIs
+    # -------------------------------------------------
     # -------------------------------------------------
     # 4️⃣ Compute KPIs
     # -------------------------------------------------
@@ -389,8 +388,35 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     # -------------------------------------------------
     # 6️⃣ Build AI Prompt
     # -------------------------------------------------
+    # -------------------------------------------------
+    # 5️⃣ Check API Key (Fallback Mode)
+    # -------------------------------------------------
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+    if not GEMINI_API_KEY:
+        return {
+            "question": question,
+            "filters_used": filters,
+            "business_summary": business_summary,
+            "insights": {
+                "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
+                "risk_analysis": "One or more products show declining performance and require review.",
+                "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
+                "regional_strategy": "Strengthen distribution in high-performing regions.",
+                "executive_actions": [
+                    "Reallocate marketing budget toward growth drivers",
+                    "Run product-level margin diagnostics",
+                    "Investigate underperforming regions"
+                ]
+            },
+            "answer": final_answer,
+            "ai_status": "fallback_no_api_key"
+        }
+
+    # -------------------------------------------------
+    # 6️⃣ Build AI Prompt
+    # -------------------------------------------------
     prompt = f"""
-<<<<<<< HEAD
     You are a senior business strategy analyst.
 
     Based on the following computed KPIs:
@@ -420,36 +446,6 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     # -------------------------------------------------
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
-=======
-            You are a senior business strategy analyst.
-
-            Based on the following computed KPIs:
-
-            {business_summary}
-
-            Provide:
-
-            1. Growth diagnosis
-            2. Revenue risk areas
-            3. Product-level strategy
-            4. Region-level recommendation
-            5. 3 concrete executive actions
-
-            Be concise, strategic, and data-driven.
-            """
-    # Call AI engine (existing function)
-    ai_result = generate_insight(prompt)
-
-    # Optionally, structure the AI response
-    structured_response = {
-        "growth_analysis": ai_result.get("growth_analysis"),
-        "risk_analysis": ai_result.get("risk_analysis"),
-        "product_strategy": ai_result.get("product_strategy"),
-        "regional_strategy": ai_result.get("regional_strategy"),
-        "executive_actions": ai_result.get("executive_actions", [])
-    }
-    
->>>>>>> 5143ce6 (Fixed ai)
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -498,6 +494,8 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         "filters_used": filters,
         "business_summary": business_summary,
         "insights": structured_response,
+        "answer": final_answer,
+        "ai_status": ai_status
         "answer": final_answer,
         "ai_status": ai_status
     }
