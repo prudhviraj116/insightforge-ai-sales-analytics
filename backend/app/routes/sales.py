@@ -305,17 +305,13 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         return {
             "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
         }
-        return {
-            "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
-        }
+       
 
     if intent == "unrelated":
         return {
             "answer": "I specialize in analyzing your sales data."
         }
-        return {
-            "answer": "I specialize in analyzing your sales data."
-        }
+        
 
     # -------------------------------------------------
     # 2️⃣ Fetch Sales Data
