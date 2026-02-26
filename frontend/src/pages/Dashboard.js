@@ -112,13 +112,27 @@ This may take a few seconds on first load.
       {data && <ChartsSection data={data} openInsight={() => setInsightOpen(true)} />}
 
       {/* AI Insight Cards */}
-      {insights && (
+      {insights && typeof insights === "object" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <GrowthCard data={insights.growth_analysis} />
-          <RiskCard data={insights.risk_analysis} />
-          <ProductStrategyCard data={insights.product_strategy} />
-          <RegionStrategyCard data={insights.regional_strategy} />
-          <ActionPlanCard actions={insights.executive_actions} />
+          {insights.growth_analysis && (
+            <GrowthCard data={insights.growth_analysis} />
+          )}
+
+          {insights.risk_analysis && (
+            <RiskCard data={insights.risk_analysis} />
+          )}
+
+          {insights.product_strategy && (
+            <ProductStrategyCard data={insights.product_strategy} />
+          )}
+
+          {insights.regional_strategy && (
+            <RegionStrategyCard data={insights.regional_strategy} />
+          )}
+
+          {Array.isArray(insights.executive_actions) && (
+            <ActionPlanCard actions={insights.executive_actions} />
+          )}
         </div>
       )}
 
