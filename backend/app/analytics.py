@@ -105,7 +105,7 @@ def compute_business_summary(df):
     # Monthly revenue growth
     monthly_revenue = (
         df.set_index("order_date")
-          .resample("M")["revenue"]
+          .resample("ME")["revenue"]
           .sum()
     )
 

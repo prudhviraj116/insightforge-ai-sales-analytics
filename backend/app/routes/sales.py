@@ -288,37 +288,24 @@ def dashboard(db: Session = Depends(get_db)):
 # SMART AI RESPONSE
 # =========================
 
-
 @router.post("/ai-response")
 async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
 
     question = request.question.strip()
     intent = detect_intent(question)
 
-    # -------------------------------------------------
     # 1️⃣ Greeting / Unrelated
-    # -------------------------------------------------
-    # -------------------------------------------------
-    # 1️⃣ Greeting / Unrelated
-    # -------------------------------------------------
     if intent == "greeting":
         return {
             "answer": "Hello 👋 I’m your AI data analyst. Ask about revenue, products, regions, or trends."
         }
-       
 
     if intent == "unrelated":
         return {
             "answer": "I specialize in analyzing your sales data."
         }
-        
 
-    # -------------------------------------------------
     # 2️⃣ Fetch Sales Data
-    # -------------------------------------------------
-    # -------------------------------------------------
-    # 2️⃣ Fetch Sales Data
-    # -------------------------------------------------
     records = db.query(Sales).all()
     if not records:
         raise HTTPException(status_code=404, detail="No sales data available")
@@ -334,84 +321,46 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         for r in records
     ])
 
-
     df["order_date"] = pd.to_datetime(df["order_date"], errors="coerce")
     df = df.dropna(subset=["order_date"])
 
-    # -------------------------------------------------
     # 3️⃣ Apply Filters
-    # -------------------------------------------------
-    # -------------------------------------------------
-    # 3️⃣ Apply Filters
-    # -------------------------------------------------
     filters = extract_filters(question)
     result_data = apply_filters(df, filters)
     final_answer = explain_results(question, result_data)
 
-    # -------------------------------------------------
-    # 4️⃣ Compute KPIs
-    # -------------------------------------------------
-    # -------------------------------------------------
-    # 4️⃣ Compute KPIs
-    # -------------------------------------------------
+    # 4️⃣ Compute KPIs (ALWAYS REQUIRED)
     business_summary = compute_business_summary(df)
 
-    # -------------------------------------------------
-    # 5️⃣ Check API Key (Fallback Mode)
-    # -------------------------------------------------
+    # ---------------------------------------------------------
+    # Default fallback insights (used if AI fails OR no quota)
+    # ---------------------------------------------------------
+    fallback_insights = {
+        "growth_analysis": "Revenue trend evaluated using computed KPIs.",
+        "risk_analysis": "Review lowest performing product and region.",
+        "product_strategy": f"Focus on top product: {business_summary.get('top_product')}.",
+        "regional_strategy": f"Strengthen region: {business_summary.get('top_region')}.",
+        "executive_actions": [
+            "Reallocate marketing toward top segments",
+            "Audit declining products",
+            "Review regional performance gaps"
+        ]
+    }
+
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+    # If no API key → directly use fallback
     if not GEMINI_API_KEY:
         return {
             "question": question,
             "filters_used": filters,
             "business_summary": business_summary,
-            "insights": {
-                "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
-                "risk_analysis": "One or more products show declining performance and require review.",
-                "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
-                "regional_strategy": "Strengthen distribution in high-performing regions.",
-                "executive_actions": [
-                    "Reallocate marketing budget toward growth drivers",
-                    "Run product-level margin diagnostics",
-                    "Investigate underperforming regions"
-                ]
-            },
+            "insights": fallback_insights,
             "answer": final_answer,
             "ai_status": "fallback_no_api_key"
         }
 
-    # -------------------------------------------------
-    # 6️⃣ Build AI Prompt
-    # -------------------------------------------------
-    # -------------------------------------------------
-    # 5️⃣ Check API Key (Fallback Mode)
-    # -------------------------------------------------
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-    if not GEMINI_API_KEY:
-        return {
-            "question": question,
-            "filters_used": filters,
-            "business_summary": business_summary,
-            "insights": {
-                "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
-                "risk_analysis": "One or more products show declining performance and require review.",
-                "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
-                "regional_strategy": "Strengthen distribution in high-performing regions.",
-                "executive_actions": [
-                    "Reallocate marketing budget toward growth drivers",
-                    "Run product-level margin diagnostics",
-                    "Investigate underperforming regions"
-                ]
-            },
-            "answer": final_answer,
-            "ai_status": "fallback_no_api_key"
-        }
-
-    # -------------------------------------------------
-    # 6️⃣ Build AI Prompt
-    # -------------------------------------------------
+    # 5️⃣ Build AI Prompt
     prompt = f"""
     You are a senior business strategy analyst.
 
@@ -419,27 +368,13 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
 
     {business_summary}
 
-    Provide:
-
-    1. Growth diagnosis
-    2. Revenue risk areas
-    3. Product-level strategy
-    4. Region-level recommendation
-    5. 3 concrete executive actions
-
-    Respond strictly in JSON format:
-    {{
-        "growth_analysis": "...",
-        "risk_analysis": "...",
-        "product_strategy": "...",
-        "regional_strategy": "...",
-        "executive_actions": ["...", "...", "..."]
-    }}
+    Provide structured JSON analysis with:
+    growth_analysis, risk_analysis,
+    product_strategy, regional_strategy,
+    executive_actions (3 items)
     """
 
-    # -------------------------------------------------
-    # 7️⃣ Call Gemini 2.5 Flash
-    # -------------------------------------------------
+    # 6️⃣ Call Gemini
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -450,7 +385,6 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
 
         ai_text = response.text
 
-        # 🔐 Extract JSON safely
         json_match = re.search(r"\{.*\}", ai_text, re.DOTALL)
         if not json_match:
             raise ValueError("Invalid JSON returned by AI")
@@ -468,23 +402,11 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
         ai_status = "success"
 
     except Exception as e:
-        structured_response = {
-            "growth_analysis": "AI analysis temporarily unavailable.",
-            "risk_analysis": "Unable to evaluate risks at this time.",
-            "product_strategy": "Review top and bottom SKUs manually.",
-            "regional_strategy": "Review regional sales performance.",
-            "executive_actions": [
-                "Check AI configuration",
-                "Validate API key",
-                "Retry request"
-            ]
-        }
+        # Any failure → quota, invalid JSON, network, etc.
+        structured_response = fallback_insights
+        ai_status = "fallback_ai_failed"
 
-        ai_status = "failed"
-
-    # -------------------------------------------------
-    # 8️⃣ Final Response
-    # -------------------------------------------------
+    # 7️⃣ Final Response
     return {
         "question": question,
         "filters_used": filters,
