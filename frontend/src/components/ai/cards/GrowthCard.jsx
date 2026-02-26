@@ -45,7 +45,7 @@ function GrowthCard({ data }) {
   };
 
   return (
-    <div className="p-4 border rounded shadow bg-white">
+    <div className="p-4 border rounded shadow bg-green-50 border-green-200">
       <h3 className="font-bold text-lg mb-2">Growth Analysis</h3>
       {renderValue(data)}
     </div>

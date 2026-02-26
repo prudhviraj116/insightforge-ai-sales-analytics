@@ -45,7 +45,7 @@ function ProductStrategyCard({ data }) {
   };
 
   return (
-    <div className="p-4 border rounded shadow bg-white">
+    <div className="p-4 border rounded shadow bg-blue-50 border-blue-200">
       <h3 className="font-bold text-lg mb-2">Product Strategy</h3>
       {renderValue(data)}
     </div>
