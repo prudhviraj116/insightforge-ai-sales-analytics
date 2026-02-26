@@ -286,7 +286,7 @@ def dashboard(db: Session = Depends(get_db)):
 # SMART AI RESPONSE
 # =========================
 @router.post("/ai-response")
-def ai_response(request: AIRequest, db: Session = Depends(get_db)):
+async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
     # 🟢 Fallback Mode
@@ -373,3 +373,4 @@ Be concise, strategic, and data-driven.
         "answer": final_answer
 
     }
+
