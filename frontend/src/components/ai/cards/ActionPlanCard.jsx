@@ -45,7 +45,7 @@ function ActionPlanCard({ actions }) {
   };
 
   return (
-    <div className="p-4 border rounded shadow bg-yellow-50 border-yellow-200 col-span-1 md:col-span-2">
+    <div className="p-4 border rounded shadow bg-yellow-400 border-yellow-200 col-span-1 md:col-span-2">
       <h3 className="font-bold text-lg mb-2">Executive Action Plan</h3>
       {renderValue(actions)}
     </div>
