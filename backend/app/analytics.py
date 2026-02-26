@@ -69,6 +69,19 @@ def calculate_dashboard(df: pd.DataFrame):
         "region_analysis": region_analysis
     }
 
+def calculate_kpis(df: pd.DataFrame):
+    # Safe check
+    if not pd.api.types.is_datetime64_any_dtype(df["order_date"]):
+        df["order_date"] = pd.to_datetime(df["order_date"], errors="coerce")
+        df = df.dropna(subset=["order_date"])
+
+    return {
+        "total_revenue": float(df["revenue"].sum()),
+        "total_orders": int(len(df)),
+        "top_product": df.groupby("product")["revenue"].sum().idxmax()
+    }
+
+
 
 def compute_business_summary(df):
     # Normalize column names
