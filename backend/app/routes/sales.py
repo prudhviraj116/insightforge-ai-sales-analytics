@@ -5,9 +5,12 @@ from pydantic import BaseModel
 import pandas as pd
 from io import BytesIO
 import os
+<<<<<<< HEAD
 import json
 import re
 from google import genai
+=======
+>>>>>>> 5143ce6 (Fixed ai)
 from ..database import get_db
 from ..models import Sales
 from ..analytics import clean_data, calculate_dashboard, calculate_kpis, compute_business_summary
@@ -290,7 +293,25 @@ def dashboard(db: Session = Depends(get_db)):
 
 @router.post("/ai-response")
 async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
+<<<<<<< HEAD
 
+=======
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+    # 🟢 Fallback Mode
+    if not GEMINI_API_KEY:
+        return {
+            "growth_analysis": "Revenue trend shows positive movement based on computed KPIs.",
+            "risk_analysis": "One or more products show declining performance and require review.",
+            "product_strategy": "Increase investment in top-performing segments and optimize weak SKUs.",
+            "regional_strategy": "Strengthen distribution in high-performing regions.",
+            "executive_actions": [
+                "Reallocate marketing budget toward growth drivers",
+                "Run product-level margin diagnostics",
+                "Investigate underperforming regions"
+            ]
+        }
+>>>>>>> 5143ce6 (Fixed ai)
     question = request.question.strip()
     intent = detect_intent(question)
 
@@ -369,6 +390,7 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     # 6️⃣ Build AI Prompt
     # -------------------------------------------------
     prompt = f"""
+<<<<<<< HEAD
     You are a senior business strategy analyst.
 
     Based on the following computed KPIs:
@@ -398,6 +420,36 @@ async def ai_response(request: AIRequest, db: Session = Depends(get_db)):
     # -------------------------------------------------
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
+=======
+            You are a senior business strategy analyst.
+
+            Based on the following computed KPIs:
+
+            {business_summary}
+
+            Provide:
+
+            1. Growth diagnosis
+            2. Revenue risk areas
+            3. Product-level strategy
+            4. Region-level recommendation
+            5. 3 concrete executive actions
+
+            Be concise, strategic, and data-driven.
+            """
+    # Call AI engine (existing function)
+    ai_result = generate_insight(prompt)
+
+    # Optionally, structure the AI response
+    structured_response = {
+        "growth_analysis": ai_result.get("growth_analysis"),
+        "risk_analysis": ai_result.get("risk_analysis"),
+        "product_strategy": ai_result.get("product_strategy"),
+        "regional_strategy": ai_result.get("regional_strategy"),
+        "executive_actions": ai_result.get("executive_actions", [])
+    }
+    
+>>>>>>> 5143ce6 (Fixed ai)
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
