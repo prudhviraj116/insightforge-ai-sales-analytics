@@ -45,7 +45,7 @@ function RiskCard({ data }) {
   };
 
   return (
-    <div className="p-4 border rounded shadow bg-red-600 border-red-200">
+    <div className="p-5 rounded-xl shadow-md bg-green-50 text-black">
       <h3 className="font-bold text-lg mb-2">Revenue Risk Areas</h3>
       {renderValue(data)}
     </div>

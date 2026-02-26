@@ -45,7 +45,7 @@ function RegionStrategyCard({ data }) {
   };
 
   return (
-    <div className="p-4 border rounded shadow bg-purple-600 border-purple-200">
+    <div className="p-5 rounded-xl shadow-md bg-green-50 text-black">
       <h3 className="font-bold text-lg mb-2">Regional Strategy</h3>
       {renderValue(data)}
     </div>
