@@ -1,4 +1,5 @@
 import React from "react";
+import { FaLightbulb } from "react-icons/fa";
 
 function ActionPlanCard({ actions }) {
   if (!actions) return null;
@@ -7,18 +8,14 @@ function ActionPlanCard({ actions }) {
     if (!value) return null;
 
     if (typeof value === "string") {
-      return <p>{value}</p>;
+      return <p className="text-sm leading-6 text-slate-600">{value}</p>;
     }
 
     if (Array.isArray(value)) {
       return (
-        <ul className="list-disc pl-5 space-y-1">
+        <ul className="space-y-2 text-sm leading-6 text-slate-600">
           {value.map((item, index) => (
-            <li key={index}>
-              {typeof item === "object"
-                ? renderValue(item)
-                : item}
-            </li>
+            <li key={index} className="rounded-2xl bg-slate-50 px-3 py-2">{typeof item === "object" ? renderValue(item) : item}</li>
           ))}
         </ul>
       );
@@ -26,28 +23,32 @@ function ActionPlanCard({ actions }) {
 
     if (typeof value === "object") {
       return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {Object.entries(value).map(([key, val]) => (
             <div key={key}>
-              <p className="font-semibold capitalize">
-                {key.replaceAll("_", " ")}
-              </p>
-              <div className="ml-3">
-                {renderValue(val)}
-              </div>
+              <p className="text-sm font-semibold capitalize text-slate-900">{key.replaceAll("_", " ")}</p>
+              <div className="mt-1">{renderValue(val)}</div>
             </div>
           ))}
         </div>
       );
     }
 
-    return <p>{String(value)}</p>;
+    return <p className="text-sm leading-6 text-slate-600">{String(value)}</p>;
   };
 
   return (
-    <div className="p-5 rounded-xl shadow-md bg-green-50 text-black">
-      <h3 className="font-bold text-lg mb-2">Executive Action Plan</h3>
-      {renderValue(actions)}
+    <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+      <div className="flex items-center gap-3">
+        <div className="rounded-2xl bg-violet-50 p-3 text-violet-600">
+          <FaLightbulb />
+        </div>
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-400">Action plan</p>
+          <h3 className="text-lg font-semibold text-slate-900">Executive action plan</h3>
+        </div>
+      </div>
+      <div className="mt-4">{renderValue(actions)}</div>
     </div>
   );
 }

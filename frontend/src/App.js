@@ -138,26 +138,11 @@ export default App;*/
 
 
 
-import React, { useState, useEffect } from "react";
-import IntroScreen from "./components/layout/IntroScreen";
+import React from "react";
 import Dashboard from "./pages/Dashboard";
 
 function App() {
-
-  const [showIntro, setShowIntro] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowIntro(false);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white relative overflow-hidden">
-      {showIntro ? <IntroScreen /> : <Dashboard />}
-    </div>
-  );
+  return <Dashboard />;
 }
 
 export default App;

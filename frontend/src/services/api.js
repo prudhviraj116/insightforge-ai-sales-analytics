@@ -1,7 +1,8 @@
 // src/services/api.js
 
-// Base URL from Vercel environment variable
-// src/services/api.js
+const DEFAULT_API_URL = "http://127.0.0.1:8000";
+const BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
+
 const fetchWithRetry = async (url, options = {}, retries = 2, delay = 2000) => {
   try {
     const response = await fetch(url, options);
@@ -20,11 +21,6 @@ const fetchWithRetry = async (url, options = {}, retries = 2, delay = 2000) => {
   }
 };
 
-const BASE_URL = process.env.REACT_APP_API_URL;
-
-if (!BASE_URL) {
-  console.error("REACT_APP_API_URL is not defined");
-}
 
 // ---------------- Dashboard ----------------
 export const fetchDashboardData = async () => {
